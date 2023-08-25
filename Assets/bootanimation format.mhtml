@@ -1,0 +1,943 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://android.googlesource.com/platform/frameworks/base/+/master/cmds/bootanimation/FORMAT.md
+Subject: bootanimation format
+Date: Wed, 23 Aug 2023 03:33:19 -0000
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW----"
+
+
+------MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW----
+Content-Type: text/html
+Content-ID: <frame-EC74ED95E4F1DC132E917B9DE16D8157@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://android.googlesource.com/platform/frameworks/base/+/master/cmds/bootanimation/FORMAT.md
+
+<!DOCTYPE html><html lang=3D"en"><head><meta http-equiv=3D"Content-Type" co=
+ntent=3D"text/html; charset=3DUTF-8"><meta name=3D"viewport" content=3D"wid=
+th=3Ddevice-width, initial-scale=3D1"><title>bootanimation format</title><l=
+ink rel=3D"stylesheet" type=3D"text/css" href=3D"https://android.googlesour=
+ce.com/+static/base.css"><link rel=3D"stylesheet" type=3D"text/css" href=3D=
+"https://android.googlesource.com/+static/doc.css"><link rel=3D"stylesheet"=
+ type=3D"text/css" href=3D"https://android.googlesource.com/+static/prettif=
+y/prettify.css"><!-- default customHeadTagPart --></head><body class=3D"Sit=
+e"><header class=3D"Site-header "><div class=3D"Header"><div class=3D"Heade=
+r-title"></div></div></header><div class=3D"Site-content Site-Content--mark=
+down"><div class=3D"Container"><div class=3D"doc"><h1><a class=3D"h" name=
+=3D"bootanimation-format" href=3D"https://android.googlesource.com/platform=
+/frameworks/base/+/master/cmds/bootanimation/FORMAT.md#bootanimation-format=
+"><span></span></a>bootanimation format</h1><h2><a class=3D"h" name=3D"zipf=
+ile-paths" href=3D"https://android.googlesource.com/platform/frameworks/bas=
+e/+/master/cmds/bootanimation/FORMAT.md#zipfile-paths"><span></span></a>zip=
+file paths</h2><p>The system selects a boot animation zipfile from the foll=
+owing locations, in order:</p><pre class=3D"code">/system/media/bootanimati=
+on-encrypted.zip (if getprop("vold.decrypt") =3D '1')
+/system/media/bootanimation.zip
+/oem/media/bootanimation.zip
+</pre><h2><a class=3D"h" name=3D"zipfile-layout" href=3D"https://android.go=
+oglesource.com/platform/frameworks/base/+/master/cmds/bootanimation/FORMAT.=
+md#zipfile-layout"><span></span></a>zipfile layout</h2><p>The <code class=
+=3D"code">bootanimation.zip</code> archive file includes:</p><pre class=3D"=
+code">desc.txt - a text file
+part0  \
+part1   \  directories full of PNG frames
+...     /
+partN  /
+</pre><h2><a class=3D"h" name=3D"desc_txt-format" href=3D"https://android.g=
+ooglesource.com/platform/frameworks/base/+/master/cmds/bootanimation/FORMAT=
+.md#desc_txt-format"><span></span></a>desc.txt format</h2><p>The first line=
+ defines the general parameters of the animation:</p><pre class=3D"code">WI=
+DTH HEIGHT FPS [PROGRESS]
+</pre><ul><li><strong>WIDTH:</strong> animation width (pixels)</li><li><str=
+ong>HEIGHT:</strong> animation height (pixels)</li><li><strong>FPS:</strong=
+> frames per second, e.g. 60</li><li><strong>PROGRESS:</strong> whether to =
+show a progress percentage on the last part<ul><li>The percentage will be d=
+isplayed with an x-coordinate of =E2=80=98c=E2=80=99, and a y-coordinate se=
+t to 1/3 of the animation height.</li></ul></li></ul><p>Next, provide an op=
+tional line for dynamic coloring attributes, should dynamic coloring be use=
+d. See the dyanmic coloring section for format details. Skip if you don't u=
+se dynamic coloring.</p><p>It is followed by a number of rows of the form:<=
+/p><pre class=3D"code">TYPE COUNT PAUSE PATH [FADE [#RGBHEX [CLOCK1 [CLOCK2=
+]]]]
+</pre><ul><li><strong>TYPE:</strong> a single char indicating what type of =
+animation segment this is:<ul><li><code class=3D"code">p</code> -- this par=
+t will play unless interrupted by the end of the boot</li><li><code class=
+=3D"code">c</code> -- this part will play to completion, no matter what</li=
+><li><code class=3D"code">f</code> -- same as <code class=3D"code">p</code>=
+ but in addition the specified number of frames is being faded out while co=
+ntinue playing. Only the first interrupted <code class=3D"code">f</code> pa=
+rt is faded out, other subsequent <code class=3D"code">f</code> parts are s=
+kipped</li></ul></li><li><strong>COUNT:</strong> how many times to play the=
+ animation, or 0 to loop forever until boot is complete</li><li><strong>PAU=
+SE:</strong> number of FRAMES to delay after this part ends</li><li><strong=
+>PATH:</strong> directory in which to find the frames for this part (e.g. <=
+code class=3D"code">part0</code>)</li><li><strong>FADE:</strong> <em>(ONLY =
+FOR <code class=3D"code">f</code> TYPE)</em> number of frames to fade out w=
+hen interrupted where <code class=3D"code">0</code> means <em>immediately</=
+em> which makes <code class=3D"code">f ... 0</code> behave like <code class=
+=3D"code">p</code> and doesn't count it as a fading part</li><li><strong>RG=
+BHEX:</strong> <em>(OPTIONAL)</em> a background color, specified as <code c=
+lass=3D"code">#RRGGBB</code></li><li><strong>CLOCK1, CLOCK2:</strong> <em>(=
+OPTIONAL)</em> the coordinates at which to draw the current time (for watch=
+es):<ul><li>If only <code class=3D"code">CLOCK1</code> is provided it is th=
+e y-coordinate of the clock and the x-coordinate defaults to <code class=3D=
+"code">c</code></li><li>If both <code class=3D"code">CLOCK1</code> and <cod=
+e class=3D"code">CLOCK2</code> are provided then <code class=3D"code">CLOCK=
+1</code> is the x-coordinate and <code class=3D"code">CLOCK2</code> is the =
+y-coodinate</li><li>Values can be either a positive integer, a negative int=
+eger, or <code class=3D"code">c</code><ul><li><code class=3D"code">c</code>=
+ -- will centre the text</li><li><code class=3D"code">n</code> -- will posi=
+tion the text n pixels from the start; left edge for x-axis, bottom edge fo=
+r y-axis</li><li><code class=3D"code">-n</code> -- will position the text n=
+ pixels from the end; right edge for x-axis, top edge for y-axis</li><li>Ex=
+amples:<ul><li><code class=3D"code">-24</code> or <code class=3D"code">c -2=
+4</code> will position the text 24 pixels from the top of the screen, centr=
+ed horizontally</li><li><code class=3D"code">16 c</code> will position the =
+text 16 pixels from the left of the screen, centred vertically</li><li><cod=
+e class=3D"code">-32 32</code> will position the text such that the bottom =
+right corner is 32 pixels above and 32 pixels left of the edges of the scre=
+en</li></ul></li></ul></li></ul></li></ul><p>There is also a special TYPE, =
+<code class=3D"code">$SYSTEM</code>, that loads <code class=3D"code">/syste=
+m/media/bootanimation.zip</code> and plays that.</p><h2><a class=3D"h" name=
+=3D"clock_font_png" href=3D"https://android.googlesource.com/platform/frame=
+works/base/+/master/cmds/bootanimation/FORMAT.md#clock_font_png"><span></sp=
+an></a>clock_font.png</h2><p>The file used to draw the time on top of the b=
+oot animation. The font format is as follows:</p><ul><li>The file specifies=
+ glyphs for the ascii characters 32-127 (0x20-0x7F), both regular weight an=
+d bold weight.</li><li>The image is divided into a grid of characters</li><=
+li>There are 16 columns and 6 rows</li><li>Each row is divided in half: reg=
+ular weight glyphs on the top half, bold glyphs on the bottom</li><li>For a=
+ NxM image each character glyph will be N/16 pixels wide and M/(12*2) pixel=
+s high</li></ul><h2><a class=3D"h" name=3D"progress_font_png" href=3D"https=
+://android.googlesource.com/platform/frameworks/base/+/master/cmds/bootanim=
+ation/FORMAT.md#progress_font_png"><span></span></a>progress_font.png</h2><=
+p>The file used to draw the boot progress in percentage on top of the boot =
+animation. The font format follows the same specification as the one descri=
+bed for clock_font.png.</p><h2><a class=3D"h" name=3D"loading-and-playing-f=
+rames" href=3D"https://android.googlesource.com/platform/frameworks/base/+/=
+master/cmds/bootanimation/FORMAT.md#loading-and-playing-frames"><span></spa=
+n></a>loading and playing frames</h2><p>Each part is scanned and loaded dir=
+ectly from the zip archive. Within a part directory, every file (except <co=
+de class=3D"code">trim.txt</code> and <code class=3D"code">audio.wav</code>=
+; see next sections) is expected to be a PNG file that represents one frame=
+ in that part (at the specified resolution). For this reason it is importan=
+t that frames be named sequentially (e.g. <code class=3D"code">part000.png<=
+/code>, <code class=3D"code">part001.png</code>, ...) and added to the zip =
+archive in that order.</p><h2><a class=3D"h" name=3D"trim_txt" href=3D"http=
+s://android.googlesource.com/platform/frameworks/base/+/master/cmds/bootani=
+mation/FORMAT.md#trim_txt"><span></span></a>trim.txt</h2><p>To save on memo=
+ry, textures may be trimmed by their background color.  trim.txt sequential=
+ly lists the trim output for each frame in its directory, so the frames may=
+ be properly positioned. Output should be of the form: <code class=3D"code"=
+>WxH+X+Y</code>. Example:</p><pre class=3D"code">713x165+388+914
+708x152+388+912
+707x139+388+911
+649x92+388+910
+</pre><p>If the file is not present, each frame is assumed to be the same s=
+ize as the animation.</p><h2><a class=3D"h" name=3D"audio_wav" href=3D"http=
+s://android.googlesource.com/platform/frameworks/base/+/master/cmds/bootani=
+mation/FORMAT.md#audio_wav"><span></span></a>audio.wav</h2><p>Each part may=
+ optionally play a <code class=3D"code">wav</code> sample when it starts. T=
+o enable this, add a file with the name <code class=3D"code">audio.wav</cod=
+e> in the part directory.</p><h2><a class=3D"h" name=3D"exiting" href=3D"ht=
+tps://android.googlesource.com/platform/frameworks/base/+/master/cmds/boota=
+nimation/FORMAT.md#exiting"><span></span></a>exiting</h2><p>The system will=
+ end the boot animation (first completing any incomplete or even entirely u=
+nplayed parts that are of type <code class=3D"code">c</code>) when the syst=
+em is finished booting. (This is accomplished by setting the system propert=
+y <code class=3D"code">service.bootanim.exit</code> to a nonzero string.)</=
+p><h2><a class=3D"h" name=3D"protips" href=3D"https://android.googlesource.=
+com/platform/frameworks/base/+/master/cmds/bootanimation/FORMAT.md#protips"=
+><span></span></a>protips</h2><h3><a class=3D"h" name=3D"PNG-compression" h=
+ref=3D"https://android.googlesource.com/platform/frameworks/base/+/master/c=
+mds/bootanimation/FORMAT.md#PNG-compression"><span></span></a><a class=3D"h=
+" name=3D"png-compression" href=3D"https://android.googlesource.com/platfor=
+m/frameworks/base/+/master/cmds/bootanimation/FORMAT.md#png-compression"><s=
+pan></span></a>PNG compression</h3><p>Use <code class=3D"code">zopflipng</c=
+ode> if you have it, otherwise <code class=3D"code">pngcrush</code> will do=
+. e.g.:</p><pre class=3D"code">for fn in *.png ; do
+    zopflipng -m ${fn}s ${fn}s.new &amp;&amp; mv -f ${fn}s.new ${fn}
+    # or: pngcrush -q ....
+done
+</pre><p>Some animations benefit from being reduced to 256 colors:</p><pre =
+class=3D"code">pngquant --force --ext .png *.png
+# alternatively: mogrify -colors 256 anim-tmp/*/*.png
+</pre><h3><a class=3D"h" name=3D"creating-the-ZIP-archive" href=3D"https://=
+android.googlesource.com/platform/frameworks/base/+/master/cmds/bootanimati=
+on/FORMAT.md#creating-the-ZIP-archive"><span></span></a><a class=3D"h" name=
+=3D"creating-the-zip-archive" href=3D"https://android.googlesource.com/plat=
+form/frameworks/base/+/master/cmds/bootanimation/FORMAT.md#creating-the-zip=
+-archive"><span></span></a>creating the ZIP archive</h3><pre class=3D"code"=
+>cd &lt;path-to-pieces&gt;
+zip -0qry -i \*.txt \*.png \*.wav @ ../bootanimation.zip *.txt part*
+</pre><p>Note that the ZIP archive is not actually compressed! The PNG file=
+s are already as compressed as they can reasonably get, and there is unlike=
+ly to be any redundancy between files.</p><h3><a class=3D"h" name=3D"Dynami=
+c-coloring" href=3D"https://android.googlesource.com/platform/frameworks/ba=
+se/+/master/cmds/bootanimation/FORMAT.md#Dynamic-coloring"><span></span></a=
+><a class=3D"h" name=3D"dynamic-coloring" href=3D"https://android.googlesou=
+rce.com/platform/frameworks/base/+/master/cmds/bootanimation/FORMAT.md#dyna=
+mic-coloring"><span></span></a>Dynamic coloring</h3><p>Dynamic coloring is =
+a render mode that draws the boot animation using a color transition. In th=
+is mode, instead of directly rendering the PNG images, it treats the R, G, =
+B, A channels of input images as area masks of dynamic colors, which interp=
+olates between start and end colors based on animation progression.</p><p>T=
+o enable it, add the following line as the second line of desc.txt:</p><pre=
+ class=3D"code">dynamic_colors PATH #RGBHEX1 #RGBHEX2 #RGBHEX3 #RGBHEX4
+</pre><ul><li><strong>PATH:</strong> file path of the part to apply dynamic=
+ color transition to. Any part before this part will be rendered in the sta=
+rt colors. Any part after will be rendered in the end colors.</li><li><stro=
+ng>RGBHEX1:</strong> the first start color (masked by the R channel), speci=
+fied as <code class=3D"code">#RRGGBB</code>.</li><li><strong>RGBHEX2:</stro=
+ng> the second start color (masked by the G channel), specified as <code cl=
+ass=3D"code">#RRGGBB</code>.</li><li><strong>RGBHEX3:</strong> the third st=
+art color (masked by the B channel), specified as <code class=3D"code">#RRG=
+GBB</code>.</li><li><strong>RGBHEX4:</strong> the forth start color (masked=
+ by the A channel), specified as <code class=3D"code">#RRGGBB</code>.</li><=
+/ul><p>The end colors will be read from the following system properties:</p=
+><ul><li>persist.bootanim.color1</li><li>persist.bootanim.color2</li><li>pe=
+rsist.bootanim.color3</li><li>persist.bootanim.color4</li></ul><p>When miss=
+ing, the end colors will default to the start colors, effectively producing=
+ no color transition.</p><p>Prepare your PNG images so that the R, G, B, A =
+channels indicates the areas to draw color1, color2, color3 and color4 resp=
+ectively.</p></div></div></div><!-- default customFooter --><footer class=
+=3D"Site-footer"><div class=3D"Footer"><span class=3D"Footer-poweredBy">Pow=
+ered by <a href=3D"https://gerrit.googlesource.com/gitiles/">Gitiles</a>| <=
+a href=3D"https://policies.google.com/privacy">Privacy</a>| <a href=3D"http=
+s://policies.google.com/terms">Terms</a></span><div class=3D"Footer-links">=
+</div></div></footer></body></html>
+------MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://android.googlesource.com/+static/base.css
+
+@charset "utf-8";
+
+@import url("//fonts.googleapis.com/css?family=3DOpen+Sans:300,400,700&subs=
+et=3Dlatin,cyrillic-ext,greek-ext,cyrillic,greek,vietnamese,latin-ext");
+
+@import url("//fonts.googleapis.com/css?family=3DSource+Code+Pro");
+
+*, ::after, ::before { box-sizing: border-box; margin: 0px; padding: 0px; }
+
+h1, h2, h3, h4, h5, h6 { font-weight: normal; margin: 0.25em 0px 0.5em; }
+
+h1 { font-size: 2em; }
+
+h2 { font-size: 1.5em; }
+
+h3 { font-size: 1.3em; }
+
+h4, h5, h6 { font-size: 14px; font-style: italic; }
+
+ul, ol { list-style: none; }
+
+.u-sha1 { background-color: rgb(241, 242, 243); color: rgb(0, 0, 0); font-s=
+ize: 13px; }
+
+.u-pre { font-size: 10pt; white-space: pre; }
+
+.u-lineNum { border-right: 1px solid rgb(241, 242, 243); color: rgb(102, 10=
+2, 102); display: inline-block; min-width: 3em; text-align: right; }
+
+.u-noSelect { user-select: none; }
+
+.u-monospace { font-family: "Source Code Pro", monospace; }
+
+.Site { background: rgb(255, 255, 255); color: rgb(0, 0, 0); display: flex;=
+ font: 14px / 1.54 "Open Sans", sans-serif; min-height: 100vh; -webkit-box-=
+orient: vertical; -webkit-box-direction: normal; flex-direction: column; }
+
+.Site-header, .Site-footer { background: rgb(238, 238, 238); -webkit-box-fl=
+ex: 0; flex: 0 0 auto; }
+
+.Site-header--withNavbar { background: rgb(255, 255, 255); }
+
+.Site-content { -webkit-box-flex: 1; flex: 1 0 auto; padding: 20px; }
+
+.Container { margin: 0px auto; max-width: 980px; }
+
+.Container--fullWidth { max-width: none; }
+
+.Header, .Footer { -webkit-box-align: center; align-items: center; display:=
+ flex; padding: 20px; }
+
+.Site-header--withNavbar .Header { max-width: 1020px; margin: 0px auto; pad=
+ding: 10px 20px; }
+
+.Header-title, .Header-image { display: flex; -webkit-box-flex: 1; flex: 1 =
+1 0%; }
+
+.Header-anchor { color: rgb(102, 102, 102); font-size: 32px; font-weight: 3=
+00; text-decoration: none; }
+
+.Header-anchorLogo { display: inline-block; margin-right: 10px; vertical-al=
+ign: middle; }
+
+.Header-nav { background: rgb(238, 238, 238); padding: 15px 0px; }
+
+.Header-menu { display: flex; -webkit-box-pack: end; justify-content: flex-=
+end; }
+
+.Header-menuItem { color: rgb(0, 0, 238); display: inline-block; margin-lef=
+t: 15px; }
+
+.Header-menuItem--noAction { color: inherit; }
+
+.Breadcrumbs { font-size: 18px; margin-bottom: 20px; }
+
+.Breadcrumbs-crumb { color: rgb(0, 0, 238); }
+
+.Breadcrumbs-crumb:last-child { color: rgb(0, 0, 0); font-weight: bold; }
+
+.Footer { color: rgb(102, 102, 102); }
+
+.Footer-poweredBy { -webkit-box-flex: 1; flex: 1 1 0%; }
+
+.Footer-formats, .Footer-links { display: flex; -webkit-box-pack: end; just=
+ify-content: flex-end; }
+
+.Footer-formatsItem { display: inline-block; }
+
+.Footer-formatsItem:first-child { margin-right: 20px; }
+
+.Footer-link { display: inline-block; margin-left: 10px; }
+
+.RepoList-item { display: flex; left: -10px; padding: 5px 0px 5px 10px; pos=
+ition: relative; white-space: nowrap; width: calc(100% + 20px); }
+
+.RepoList-item:link, .RepoList-item:visited { text-decoration: none; }
+
+.RepoList-item:hover { background: rgb(238, 238, 238); }
+
+.RepoList-item--header { font-weight: bold; margin: 0px; }
+
+.RepoList-item--header:hover { background: rgb(255, 255, 255); }
+
+.RepoList-itemName, .RepoList-itemDescription { display: inline-block; }
+
+.RepoList-itemName { margin-right: 10px; min-width: 25%; text-decoration: u=
+nderline; }
+
+.RepoList-item--header > .RepoList-itemName { text-decoration: none; }
+
+.RepoList-itemDescription { color: rgb(0, 0, 0); -webkit-box-flex: 1; flex:=
+ 1 1 0%; overflow: hidden; text-overflow: ellipsis; }
+
+.RepoDescription { margin: 10px 0px; }
+
+.RepoMirroredFrom { margin: 10px 0px; color: rgb(102, 102, 102); }
+
+.CloneRepo { background: rgb(238, 238, 238); margin-bottom: 20px; padding: =
+10px; }
+
+.CloneRepo-title { margin-bottom: 2px; }
+
+.CloneRepo-command { border: 1px solid rgb(204, 204, 204); border-radius: 4=
+px; display: block; font-size: inherit; padding: 10px; width: 100%; }
+
+.RepoShortlog { display: flex; }
+
+.RepoShortlog-refs { width: 20%; -webkit-box-flex: 0 !important; flex: 0 0 =
+auto !important; }
+
+.RepoShortlog-refs > .RefList:first-child { margin: 0px; }
+
+.RepoShortlog-log { -webkit-box-flex: 1; flex: 1 1 0%; width: 80%; }
+
+.RepoIndexDoc { border-top: 1px solid rgb(221, 221, 221); margin-top: 20px;=
+ padding-top: 5px; }
+
+.EmptyRepo-description { font-size: 14px; font-style: italic; }
+
+@media (max-width: 550px) {
+  .RepoShortlog { -webkit-box-orient: vertical; -webkit-box-direction: norm=
+al; flex-direction: column; }
+  .RepoShortlog-refs { width: auto; border-bottom: 1px solid rgb(221, 221, =
+221); margin-bottom: 20px; padding-bottom: 20px; }
+  .RepoShortlog-refs > .RefList:last-child { margin-bottom: 0px; }
+  .RepoShortlog-log { width: auto; }
+}
+
+.RefList { margin: 15px 0px; }
+
+.RefList-title { margin: 0px; }
+
+.RefList-items { overflow-wrap: break-word; }
+
+.RefList-item { padding: 2px 0px; }
+
+@media (max-width: 550px) {
+  .RefList--responsive .RefList-item { display: inline-block; margin-right:=
+ 6px; }
+}
+
+.LogNav { margin: 10px 0px; text-align: center; }
+
+.CommitLog-item { padding: 2px 0px; }
+
+.CommitLog-item--oneline:hover { background: rgb(238, 238, 238); }
+
+.CommitLog-item--full { margin-bottom: 20px; }
+
+.CommitLog-item--empty { padding: 10px 0px; text-align: center; }
+
+.CommitLog-sha1 { border-radius: 3px; display: inline-block; margin-right: =
+3px; padding: 2px 4px; text-align: center; }
+
+.CommitLog-time { color: rgb(102, 102, 102); }
+
+.CommitLog-branchLabel { color: rgb(221, 75, 57); }
+
+.CommitLog-tagLabel { color: rgb(0, 153, 51); }
+
+.CommitLog-rename { font-size: 0.9em; display: block; padding-left: 5px; }
+
+.Metadata { margin-bottom: 15px; }
+
+.Metadata-title { font-weight: bold; padding-right: 10px; text-align: right=
+; }
+
+.MetadataMessage { background-color: rgb(250, 250, 250); border: 1px solid =
+rgb(204, 204, 204); color: rgb(0, 0, 0); margin: 0px; padding: 12px; white-=
+space: pre-wrap; }
+
+.DiffTree { margin: 10px 0px 5px; }
+
+.DiffTree-action { margin-left: 0.5em; }
+
+.DiffTree-action--add { color: rgb(0, 102, 0); }
+
+.DiffTree-action--delete { color: rgb(102, 0, 0); }
+
+.DiffTree-action--rename, .DiffTree-action--copy { color: rgb(0, 0, 102); }
+
+.TreeDetail-sha1, .BlobSha1 { margin: 10px 0px; padding: 5px 10px; }
+
+.FileList { margin-left: 25px; }
+
+.FileList-item { padding: 1px 0px; position: relative; }
+
+.FileList-item:hover { background: rgb(238, 238, 238); }
+
+.FileList-item::before { left: -22px; position: absolute; top: 4px; }
+
+.FileList-itemLink { display: block; }
+
+.FileList-item--gitTree::before { content: url("data:image/png;base64,iVBOR=
+w0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAN=
+1wAADdcBQiibeAAAAb5JREFUOMulkr1KA0EQgGdvTwwnYmER0gQsrFKmSy+pLESw9Qm0F/ICNnb=
+a+h6iEOuAEWslKJKTOyJJvIT72d1xZuOFC0giOLA77O7Mt/PnNptN+I+49Xr9GhH3f3mb0v1ht9=
+vtLAUYYw5ItkgDL3KyD8PhcLvdbl/WarXT3DjLMnAcR/f7/YfxeKwtgC5RKQVhGILWeg4hQ6hUK=
+jWyucmhLFEUuWR3QYBWAZABQ9i5CCmXy16pVALP80BKaaG+70MQBLvzFMjRKKXh8j6FSYKF7ITd=
+EWLa4/ktokN74wiqjSMpnVcbQZqmEJHz+ckeCPFjWKwULpyspAqhdXVXdcnZcPjsIgn+2BsVA8j=
+VYuWlgJ3yBj0icgq2uoK+lg4t+ZvLomSKamSQ4AI5BcMADtMhyNoSgNIISUaFNtwlazcDcBc4gj=
+jVwCWid2usCWroYEhnaqbzFJLUzAHIXRDChXCcQP8zhkSZ5eNLgHAUzwDcRu4CoIRn/wsGUQIIy=
+4Vr9TH6SYFCNzw4nALn5627K4vIttOUOwfa5YnrDYzt/9OLv9I5l8kk5hZ3XLO20b7tbR7zHLy/=
+BX8G0IeBEM7ZN1NGIaFUaKLgAAAAAElFTkSuQmCC"); }
+
+.FileList-item--symlink::before { content: url("data:image/png;base64,iVBOR=
+w0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMA=
+AA3XAAAN1wFCKJt4AAABZUlEQVQ4y2NgIAL4zWL7D8TGDOQCqAEg7Ey2Aes+58AMcSSkmB2I3YB=
+4HhCfh9kOMoCgIUAJMyDe2D+b58jKe553133M+r/uU/b/zV+L/y97n/i/+JIYbkOAAl5AfGLNTd=
+e/69+n/1/4MuD/gtsqKBhkALIh5S0M1jDN2kC8a+UNt/8b36f+X3JP5f/0u1pwjeuvS8E1g3DpZ=
+Qm4ITAD5s09ZPBq49uE/0vvq4E1gPCJC5z/yy+IoGgG4a5HJqjeCJ3Pc2vjy+T/ux4Y/j99Rfz/=
+7GtK/xfeUkbBN+8pY9cMAkFzuT5uepPy/+w1lf+TF3L/Q4p3OD5zRQ67Zlg873vk9n/mMlaQ5Ec=
+gLgZiA2R5nJphCjbfNP8LVeCBJyUa40xpO+5afQXS/8jKC0DJg+uPKx+bOJf1HDYXEJPW46JW8L=
+cduKYzbdZMph4gn4ccQxSAOAuIo4FYdvsKFpYdK1iYCekDACq5JXDHGJhDAAAAAElFTkSuQmCC"=
+); }
+
+.FileList-item--regularFile::before { content: url("data:image/png;base64,i=
+VBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI=
+WXMAAAsTAAALEwEAmpwYAAAAtElEQVQ4ja2TSw7CIBRFu0r3wyIYsAMHDl1CC92IDqC0wAbQi4F=
+o5VOMJGcAyT33vQEDY+xCCPGdnIZ48NB7kPkSLMvipZQBpVQC70Br7Y0xZQGC4zj6aZoCnPMPhB=
+Btwb41NoN1XesCBHPNhyfI7fziFu6HJti3IgS0vrcFuZ3Btm2JpmC/M5jnOdEU5JoRstYmigKES=
+80x7JyrC+IE7+1xAoSrgp//AqX02vsbn5nz8K/zAP9CzjbgFoHjAAAAAElFTkSuQmCC"); }
+
+.FileList-item--executableFile::before { content: url("data:image/png;base6=
+4,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA7ADsAOwdIxY2AAAAC=
+XBIWXMAAAsTAAALEwEAmpwYAAABOklEQVQ4T5WTTYqDQBBGPdKcZnIJdy7EVRByBQPi0iwHAlGT=
+0YBHcG82kkV2VnffoKar7FYzIQYLPtqffq+rEJ04jn/CMMSV+XZs0YO1RcyLoO/7MdAD9gAI8wi=
+K+CyYA0IDFABhrmFBAHNYbwYTIxFyWN8KwAiEmIEaknqVUposCoBBGE8cIGUipUKp5IJAzOe2Jx=
+I0pG1b3Gw2+Hg8FjoQzy0rLVAavt0GuGkaXrfb7avAzs0CNcHtDD4ejwzTve/7X/9GGFqn2QmkD=
+mzbBJ9OJ8yyDNM0Rdd1J8mzgDqQPDNJLFwUBZ7PZ7xcLizwPI9gfj+NYAX2k+kx7vc7byrLEquq=
+wuv1ivv9HpMk4ec6Uwfvqus63lzXNeZ5zoIRpoqiKP/09wVBwNDhcOB1t9v9OmuLTnw62dQfVIH=
+PYx/I/0kAAAAASUVORK5CYII=3D"); }
+
+.FileList-item--gitlink::before { content: url("data:image/png;base64,iVBOR=
+w0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMA=
+AA3XAAAN1wFCKJt4AAABO0lEQVQ4T7WT3U6EMBCF92m99yGMZuODGL01eueyXqjvwc+WUlooUPk=
+fZxq3sQEvJLHJSQvlfDOnDbub/dUFCrZof3t9uaPF1kFeBwjD8E+apukfAVEUQRzHkCQJJKfEzn=
+ES43tUGP0OIOMheIGn50e4f7izCo4H4GkKDEXPBIviCIZh8AFkfv94g5Qx4Jw7AOn4Grh1iqATd=
+rUAEJmxFLIsgzzPQSnpQc4SIkMIh7ZtfQCjys6soNQlVFW1AEgpQWQCjDE+gHIKIaxZo7mu69UO=
+iqJwRXxAxnFDQllS5XUzSeO+kmoJoOzUni41NE1tM9JBTdMII85d14FpjI2lihUA9wCNA8zzDOM=
+4WkBjvgFqrQO8ulzmNgLl/8SPyTT0WL3vLLBGsNZ6HUBV1tT3vROd/Fk/AZt/Z/J+AUN8ayghXm=
+ezAAAAAElFTkSuQmCC"); }
+
+.FileContents { border-collapse: collapse; border-spacing: 0px; margin: 10p=
+x 0px; }
+
+.FileContents-line { border: none; }
+
+.FileContents-lineNum { padding-right: 10px; width: 1%; }
+
+.FileContents-lineNum::before { color: rgb(170, 170, 170); content: attr(da=
+ta-line-number); cursor: pointer; }
+
+.FileContents-lineContents { line-height: 1.3em; min-height: 1em; padding-l=
+eft: 10px; }
+
+.FileContents-lineContents:target { background: rgb(207, 216, 220); }
+
+.InlineReadme { border-top: 1px solid rgb(221, 221, 221); margin: 10px 0px;=
+ padding: 7px 0px; }
+
+.InlineReadme-path { color: rgb(102, 102, 102); }
+
+.Blame { border-collapse: collapse; font-size: 8pt; margin: 0px auto; }
+
+.Blame-region--bg1 { background: rgb(255, 255, 255); }
+
+.Blame-region--bg2 { background: rgb(241, 242, 243); }
+
+.Blame-sha1, .Blame-author, .Blame-time, .Blame-regionLink { font-size: 8pt=
+; padding: 0px 3px; white-space: nowrap; }
+
+.Blame-regionLink { text-align: right; }
+
+.Blame-lineNum .u-lineNum { padding: 0px 8px; text-align: right; }
+
+.Blame-lineNum:hover { text-decoration: underline; }
+
+.Blame-lineContent { font-size: 9pt; line-height: 1.3em; padding: 0px 8px; =
+}
+
+.Diff { margin: 10px 0px; }
+
+.Diff-fileIndex { color: rgb(68, 68, 68); font-weight: bold; }
+
+.Diff-unified { border-bottom: 1px solid rgb(221, 221, 221); border-top: 1p=
+x solid rgb(221, 221, 221); padding: 10px 0px; }
+
+.Diff-hunk { color: rgb(0, 0, 204); }
+
+.Diff-delete { color: rgb(204, 0, 0); }
+
+.Diff-insert { color: rgb(0, 136, 0); }
+
+sentinel { }
+------MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&subset=latin,cyrillic-ext,greek-ext,cyrillic,greek,vietnamese,latin-ext
+
+@charset "utf-8";
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu1aB.woff2") format("woff2"); unicode=
+-range: U+460-52F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE=
+2F; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu1aB.woff2") format("woff2"); unicode=
+-range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu1aB.woff2") format("woff2"); unicode=
+-range: U+1F00-1FFF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu1aB.woff2") format("woff2"); unicode=
+-range: U+370-3FF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu1aB.woff2") format("woff2"); unicode=
+-range: U+590-5FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu1aB.woff2") format("woff2"); unicode=
+-range: U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U=
++300-301, U+303-304, U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu1aB.woff2") format("woff2"); unicode=
+-range: U+100-2AF, U+304, U+308, U+329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U=
++20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 300=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2") format("woff2"); unicode-r=
+ange: U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+30=
+8, U+329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+22=
+15, U+FEFF, U+FFFD; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu1aB.woff2") format("woff2"); unicode=
+-range: U+460-52F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE=
+2F; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu1aB.woff2") format("woff2"); unicode=
+-range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu1aB.woff2") format("woff2"); unicode=
+-range: U+1F00-1FFF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu1aB.woff2") format("woff2"); unicode=
+-range: U+370-3FF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu1aB.woff2") format("woff2"); unicode=
+-range: U+590-5FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu1aB.woff2") format("woff2"); unicode=
+-range: U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U=
++300-301, U+303-304, U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu1aB.woff2") format("woff2"); unicode=
+-range: U+100-2AF, U+304, U+308, U+329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U=
++20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2") format("woff2"); unicode-r=
+ange: U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+30=
+8, U+329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+22=
+15, U+FEFF, U+FFFD; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu1aB.woff2") format("woff2"); unicode=
+-range: U+460-52F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE=
+2F; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu1aB.woff2") format("woff2"); unicode=
+-range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu1aB.woff2") format("woff2"); unicode=
+-range: U+1F00-1FFF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu1aB.woff2") format("woff2"); unicode=
+-range: U+370-3FF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu1aB.woff2") format("woff2"); unicode=
+-range: U+590-5FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu1aB.woff2") format("woff2"); unicode=
+-range: U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U=
++300-301, U+303-304, U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu1aB.woff2") format("woff2"); unicode=
+-range: U+100-2AF, U+304, U+308, U+329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U=
++20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700=
+; font-stretch: 100%; src: url("https://fonts.gstatic.com/s/opensans/v35/me=
+mvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-muw.woff2") format("woff2"); unicode-r=
+ange: U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+30=
+8, U+329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+22=
+15, U+FEFF, U+FFFD; }
+------MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://fonts.googleapis.com/css?family=Source+Code+Pro
+
+@charset "utf-8";
+
+@font-face { font-family: "Source Code Pro"; font-style: normal; font-weigh=
+t: 400; src: url("https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILx=
+Rpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQtMRrTEUc.woff2") format("woff2"); unicode-=
+range: U+460-52F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2=
+F; }
+
+@font-face { font-family: "Source Code Pro"; font-style: normal; font-weigh=
+t: 400; src: url("https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILx=
+Rpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQtM1rTEUc.woff2") format("woff2"); unicode-=
+range: U+301, U+400-45F, U+490-491, U+4B0-4B1, U+2116; }
+
+@font-face { font-family: "Source Code Pro"; font-style: normal; font-weigh=
+t: 400; src: url("https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILx=
+Rpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQtMVrTEUc.woff2") format("woff2"); unicode-=
+range: U+1F00-1FFF; }
+
+@font-face { font-family: "Source Code Pro"; font-style: normal; font-weigh=
+t: 400; src: url("https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILx=
+Rpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQtMprTEUc.woff2") format("woff2"); unicode-=
+range: U+370-3FF; }
+
+@font-face { font-family: "Source Code Pro"; font-style: normal; font-weigh=
+t: 400; src: url("https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILx=
+Rpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQtMZrTEUc.woff2") format("woff2"); unicode-=
+range: U+102-103, U+110-111, U+128-129, U+168-169, U+1A0-1A1, U+1AF-1B0, U+=
+300-301, U+303-304, U+308-309, U+323, U+329, U+1EA0-1EF9, U+20AB; }
+
+@font-face { font-family: "Source Code Pro"; font-style: normal; font-weigh=
+t: 400; src: url("https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILx=
+Rpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQtMdrTEUc.woff2") format("woff2"); unicode-=
+range: U+100-2AF, U+304, U+308, U+329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+=
+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+@font-face { font-family: "Source Code Pro"; font-style: normal; font-weigh=
+t: 400; src: url("https://fonts.gstatic.com/s/sourcecodepro/v22/HI_diYsKILx=
+Rpg3hIP6sJ7fM7PqPMcMnZFqUwX28DMyQtMlrTA.woff2") format("woff2"); unicode-ra=
+nge: U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308=
+, U+329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+221=
+5, U+FEFF, U+FFFD; }
+------MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://android.googlesource.com/+static/doc.css
+
+@charset "utf-8";
+
+.Site-Content--markdown { padding-top: 0px; }
+
+.Header-nav ul { max-width: 1020px; margin: 0px auto; padding: 0px 20px; }
+
+.Header-nav li { display: inline-block; margin-right: 15px; }
+
+.doc h1, .doc h2, .doc h3, .doc h4, .doc h5, .doc h6 { font-weight: normal;=
+ margin: 1.236em 0px 0.618em; }
+
+.doc.RepoIndexDoc h1 { margin-top: 0.25em; }
+
+.doc h1 { font-size: 2em; }
+
+.doc h2 { font-size: 1.5em; }
+
+.doc h3 { font-size: 1.3em; }
+
+.doc h4 { font-size: 1.3em; font-weight: lighter; font-style: italic; }
+
+.doc h5 { font-size: 16px; font-weight: lighter; font-style: italic; }
+
+.doc h6 { font-size: 14px; font-style: italic; }
+
+.doc hr { border-right: none; border-bottom: none; border-left: none; borde=
+r-image: initial; border-top: 1px solid rgb(170, 170, 170); display: block;=
+ margin-top: 25px; }
+
+.doc a { text-decoration: none; }
+
+.doc a:link { color: rgb(36, 93, 193); }
+
+.doc a:visited { color: rgb(119, 89, 174); }
+
+.doc a:hover { text-decoration: underline; }
+
+.doc a.h { display: inline-block; font-weight: normal; width: 1.5em; margin=
+-left: -1.5em; margin-top: -1em; margin-bottom: -1em; }
+
+.doc a.h:link, .doc a.h:visited { color: rgb(68, 68, 68); }
+
+.doc a.h:focus { outline: none; }
+
+.doc a.h:hover { text-decoration: none; }
+
+.doc a.h span { display: inline-block; width: 1.5em; }
+
+.doc h1:hover a.h span::before, .doc h2:hover a.h span::before, .doc h3:hov=
+er a.h span::before, .doc h4:hover a.h span::before, .doc h5:hover a.h span=
+::before, .doc h6:hover a.h span::before { content: "#"; font-weight: norma=
+l; color: rgb(170, 170, 170); }
+
+.doc h1:hover a:hover.h span::before, .doc h2:hover a:hover.h span::before,=
+ .doc h3:hover a:hover.h span::before, .doc h4:hover a:hover.h span::before=
+, .doc h5:hover a:hover.h span::before, .doc h6:hover a:hover.h span::befor=
+e { text-decoration: underline; }
+
+.doc h1:hover a:visited.h span::before, .doc h2:hover a:visited.h span::bef=
+ore, .doc h3:hover a:visited.h span::before, .doc h4:hover a:visited.h span=
+::before, .doc h5:hover a:visited.h span::before, .doc h6:hover a:visited.h=
+ span::before { color: rgb(170, 170, 170); }
+
+.doc ul, .doc ol { margin: 10px 10px 10px 30px; padding: 0px; }
+
+.doc ul { list-style-type: disc; }
+
+.doc ol { list-style-type: decimal; }
+
+.doc img { border: 0px; max-width: 100%; }
+
+.doc iframe { min-width: 100px; min-height: 30px; }
+
+iframe.noborder { border: 0px; }
+
+.doc em { font-weight: normal; font-style: italic; }
+
+.doc strong { font-weight: bold; color: inherit; }
+
+.doc p { margin: 10px 0px; }
+
+.doc blockquote { background-color: rgb(255, 253, 231); border-left: 2px so=
+lid rgb(250, 183, 0); padding: 2px 10px; }
+
+.doc pre { padding: 12px; font-size: 10pt; background-color: rgb(250, 250, =
+250); border: 1px solid rgb(204, 204, 204); overflow-x: auto; }
+
+.doc code { padding: 2px 4px; background-color: rgb(245, 245, 245); border:=
+ transparent; border-radius: 4px; }
+
+.doc .code { font-family: "Source Code Pro", monospace; }
+
+.doc dl dt { margin-top: 1em; }
+
+.doc table { border-collapse: collapse; border-spacing: 0px; }
+
+.doc th { text-align: center; }
+
+.doc th, .doc td { border: 1px solid rgb(238, 238, 238); padding: 4px 12px;=
+ vertical-align: top; }
+
+.doc th { background-color: rgb(245, 245, 245); }
+
+.toc { margin-top: 30px; }
+
+.toc-aux { background: rgb(249, 249, 249); border: 1px solid rgb(242, 242, =
+242); }
+
+.toc h2 { margin: 0px 0px 5px; }
+
+.toc ul { margin: 10px 10px 10px 30px; }
+
+.toc ul li { margin-left: 0px; list-style: disc; }
+
+.toc ul ul { margin-top: 0px; margin-bottom: 0px; }
+
+.toc ul ul li { list-style: circle; }
+
+.note, .promo, .aside { border: 1px solid; border-radius: 4px; margin: 10px=
+ 0px; padding: 10px; }
+
+.note { background: rgb(255, 251, 228); border-color: rgb(248, 246, 230); }
+
+.promo { background: rgb(246, 249, 255); border-color: rgb(239, 242, 249); =
+}
+
+.aside { background: rgb(249, 249, 249); border-color: rgb(242, 242, 242); =
+}
+
+.note :first-child, .promo :first-child, .aside :first-child { margin-top: =
+0px; }
+
+.note p:last-child, .promo p:last-child, .aside p:last-child { margin-botto=
+m: 0px; }
+
+.cols { margin: 0px -1.533%; width: 103.067%; }
+
+.col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .co=
+l-10, .col-11, .col-12 { display: inline-block; margin: 0px 1.488% 20px; ve=
+rtical-align: top; }
+
+.cols h1, .cols h2, .cols h3, .cols h4, .cols h5, .cols h6 { margin: 0.67em=
+ 0px; }
+
+.col-1 { width: 5.357%; }
+
+.col-2 { width: 13.69%; }
+
+.col-3 { width: 22.024%; }
+
+.col-4 { width: 30.357%; }
+
+.col-5 { width: 38.69%; }
+
+.col-6 { width: 47.024%; }
+
+.col-7 { width: 55.357%; }
+
+.col-8 { width: 63.69%; }
+
+.col-9 { width: 72.024%; }
+
+.col-10 { width: 80.357%; }
+
+.col-11 { width: 88.69%; }
+
+.col-12 { width: 97.024%; }
+
+.cols hr { width: 80%; }
+
+sentinel { }
+------MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW----
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://android.googlesource.com/+static/prettify/prettify.css
+
+@charset "utf-8";
+
+.str { color: rgb(0, 136, 0); }
+
+.kwd { color: rgb(0, 0, 136); }
+
+.com { color: rgb(136, 0, 0); }
+
+.typ { color: rgb(102, 0, 102); }
+
+.lit { color: rgb(0, 102, 102); }
+
+.pun, .opn, .clo { color: rgb(102, 102, 0); }
+
+.pln { color: rgb(0, 0, 0); }
+
+.tag { color: rgb(0, 0, 136); }
+
+.atn { color: rgb(102, 0, 102); }
+
+.atv { color: rgb(0, 136, 0); }
+
+.dec { color: rgb(102, 0, 102); }
+
+@media print {
+  .str { color: rgb(0, 102, 0); }
+  .kwd { color: rgb(0, 0, 102); font-weight: bold; }
+  .com { color: rgb(102, 0, 0); font-style: italic; }
+  .typ { color: rgb(68, 0, 68); font-weight: bold; }
+  .lit { color: rgb(0, 68, 68); }
+  .pun, .opn, .clo { color: rgb(68, 68, 0); }
+  .pln { color: rgb(0, 0, 0); }
+  .tag { color: rgb(0, 0, 102); font-weight: bold; }
+  .atn { color: rgb(68, 0, 68); }
+  .atv { color: rgb(0, 102, 0); }
+}
+
+pre.prettyprint { padding: 2px; border: 1px solid rgb(136, 136, 136); }
+
+ol.linenums { margin-top: 0px; margin-bottom: 0px; }
+
+li.L0, li.L1, li.L2, li.L3, li.L5, li.L6, li.L7, li.L8 { list-style-type: n=
+one; }
+
+li.L1, li.L3, li.L5, li.L7, li.L9 { background: rgb(238, 238, 238); }
+------MultipartBoundary--vZwuBxq1RMHV1CDJdHHATmuPbHeM8aZ1f0OaiQ8TFW------
